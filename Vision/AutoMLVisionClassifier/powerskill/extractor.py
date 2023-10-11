@@ -62,8 +62,6 @@ def extract_label(result):
     :param result: The inference input
     :return: The highest probability label
     """
-    # Get probs
-    prob_labels = {}
     ind = result.find("probs")
     end_prob_ind = result[ind:].find("]")
     probs = result[ind + 8:ind + end_prob_ind + 1].replace("]", "").replace("[", "").split(",")
@@ -72,8 +70,10 @@ def extract_label(result):
     ind = result.find("labels")
     end_prob_ind = result[ind:].find("]")
     labels = result[ind + 8:ind + end_prob_ind + 1].replace("]", "").replace("[", "").split(",")
-    for i, prob in enumerate(probs):
-        prob_labels[prob] = labels[i].translate(str.maketrans('', '', string.punctuation))
+    prob_labels = {
+        prob: labels[i].translate(str.maketrans('', '', string.punctuation))
+        for i, prob in enumerate(probs)
+    }
     best_labels = heapq.nlargest(2, prob_labels)
     return [prob_labels[best_labels[0]].strip(), prob_labels[best_labels[1]].strip()]
 

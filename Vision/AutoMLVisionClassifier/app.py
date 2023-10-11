@@ -37,7 +37,7 @@ get_latest_model = os.environ['GET_LATEST_MODEL']
 async def startup_event():
     try:
         if get_latest_model.lower() == "true":
-            logging.info(f"Download latest model")
+            logging.info("Download latest model")
             if class_model.get_latest_model(experiment_name):
                 class_model.load_classification_model('models/train_artifacts/')   # The AML artifacts path
             else:
@@ -66,11 +66,10 @@ async def healthcheck():
 
 @app.post('/api/extraction')
 def extract(values: Values, api_key: APIKey = Depends(get_api_key)):
-    body = values.dict()
-    if not body:
-        return 'Expected text within body of request. No text found.', status.HTTP_400_BAD_REQUEST
-    else:
+    if body := values.dict():
         return extractor.go_extract(body, classification_model=class_model.classication_model)
+    else:
+        return 'Expected text within body of request. No text found.', status.HTTP_400_BAD_REQUEST
 
 
 # Remove these two lines below for non-debug/production mode

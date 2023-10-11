@@ -90,9 +90,7 @@ def extract_image_features(resnet_model, image64):
     -------
 
     """
-    # Here we extract the features of the image
-    image_vectors = predict(image64, resnet_model)[0]
-    return image_vectors
+    return predict(image64, resnet_model)[0]
 
 
 def set_log_level(debug):
@@ -116,11 +114,9 @@ def build_output_response(inputs, outputs, topncos, error=None):
     """
     values = ObjDict()
     values.values = []
-    entities = []
+    entities = [topncos]
 
-    entities.append(topncos)
-    entity_values = {}
-    entity_values['most_similar'] = topncos
+    entity_values = {'most_similar': topncos}
     errors = ''
     values.values.append({'recordId': inputs['values'][0]['recordId'], \
                           "errors": errors,

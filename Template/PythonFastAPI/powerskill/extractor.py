@@ -28,23 +28,24 @@ def build_output_response(inputs, outputs,error=None):
     :return: The json response object
     """
     values = ObjDict()
-    values.values = []
-    entity_values = {}
-    entities = []
-
-    entity_values['modelName'] = 'Your model'
-    entity_values['language'] = 'EN'
-    entity_values['text'] = 'Your prediction'
-    entities.append(entity_values)
+    entity_values = {
+        'modelName': 'Your model',
+        'language': 'EN',
+        'text': 'Your prediction',
+    }
+    entities = [entity_values]
     entity_values = {}
     errors = ''
-    values.values.append({'recordId': inputs['values'][0]['recordId'], \
-                          'correlationId': inputs['values'][0]['data']['correlationId'],
-                          'batch': inputs['values'][0]['data']['batch'],
-                          "errors": errors,
-                          "data": entity_values,
-                          "warnings": ""})
-
+    values.values = [
+        {
+            'recordId': inputs['values'][0]['recordId'],
+            'correlationId': inputs['values'][0]['data']['correlationId'],
+            'batch': inputs['values'][0]['data']['batch'],
+            "errors": errors,
+            "data": entity_values,
+            "warnings": "",
+        }
+    ]
     return values
 
 

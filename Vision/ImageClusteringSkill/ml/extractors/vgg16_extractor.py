@@ -49,5 +49,4 @@ class VGG16Extractor(Extractor):
         prepared = [cv2.resize(image, (width, height)) for image in images]
         prepared = preprocess_input(np.array(prepared))
         vgg16_features = self.model.predict(prepared)
-        vgg16_flat = vgg16_features.reshape(len(vgg16_features), -1)
-        return vgg16_flat
+        return vgg16_features.reshape(len(vgg16_features), -1)

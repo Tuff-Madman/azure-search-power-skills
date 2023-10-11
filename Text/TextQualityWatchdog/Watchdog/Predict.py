@@ -6,13 +6,9 @@ def get_ids_and_masks(tokenizer, text):
     This function takes a BertWordPieceTokenizer "tokenizer" and string "text"
     as input and returns the input_ids and attention_masks computed for "text".
     """
-    input_ids = []
-    attention_masks = []
-
     encoding = tokenizer.encode(text)
-    input_ids.append(encoding.ids)
-    attention_masks.append(encoding.attention_mask)
-
+    input_ids = [encoding.ids]
+    attention_masks = [encoding.attention_mask]
     return input_ids, attention_masks
 
 def predict(ort_session, input_ids, attention_masks):
@@ -26,9 +22,7 @@ def predict(ort_session, input_ids, attention_masks):
     outputs = ort_session.run(["logits"], input_dict)
 
     logits = outputs[0]
-    flat_prediction = np.argmax(logits, axis=1).flatten()
-
-    return flat_prediction
+    return np.argmax(logits, axis=1).flatten()
 
 if __name__ == '__main__':
     tokenizer = sys.argv[1]
@@ -38,4 +32,4 @@ if __name__ == '__main__':
     input_ids, attention_masks = get_ids_and_masks(tokenizer, text)
     flat_prediction = predict(ort_session, input_ids, attention_masks)
 
-    print('Predicted class is: ' + str(flat_prediction))
+    print(f'Predicted class is: {str(flat_prediction)}')

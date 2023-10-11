@@ -41,11 +41,10 @@ async def get_api_key(
 
 @app.post('/api/extraction')
 def extract(values: Values, api_key: APIKey = Depends(get_api_key)):
-    body = values.dict()
-    if not body:
-        return 'Expected text within body of request. No text found.', status.HTTP_400_BAD_REQUEST
-    else:
+    if body := values.dict():
         return extractor.go_extract(body)
+    else:
+        return 'Expected text within body of request. No text found.', status.HTTP_400_BAD_REQUEST
 
 
 if __name__ == "__main__":

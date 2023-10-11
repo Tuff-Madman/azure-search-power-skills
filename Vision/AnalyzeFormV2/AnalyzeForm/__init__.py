@@ -12,8 +12,7 @@ import azure.functions as func
 def main(req: func.HttpRequest) -> func.HttpResponse:
     logging.info('Invoked AnalyzeForm Skill.')
     try:
-        body = json.dumps(req.get_json())
-        if body:
+        if body := json.dumps(req.get_json()):
             # For testing uncomment the following line to log the incoming request
             #logging.info(body)
             result = compose_response(body)
@@ -44,8 +43,7 @@ def compose_response(json_data):
     assert ('values' in body), "request does not implement the custom skill interface"
     values = body['values']
     # Prepare the Output before the loop
-    results = {}
-    results["values"] = []
+    results = {"values": []}
     mappings = None
     with open(pathlib.Path(__file__).parent / 'field_mappings.json') as file:
         mappings = json.loads(file.read())
@@ -66,9 +64,9 @@ def transform_value(value, mappings, form_recognizer_client,model_id):
         recordId = value['recordId']
     except AssertionError  as error:
         return None
-    try:         
+    try:     
         assert ('data' in value), "'data' field is required."
-        data = value['data']        
+        data = value['data']
         formUrl = data['formUrl']
         formSasToken = data ['formSasToken']
         formUrl = formUrl + formSasToken
@@ -77,25 +75,20 @@ def transform_value(value, mappings, form_recognizer_client,model_id):
         result = poller.result()
         recognized = {}
         for recognized_form in result:
-            print("Form type: {}".format(recognized_form.form_type))
+            print(f"Form type: {recognized_form.form_type}")
             for name, field in recognized_form.fields.items():
                 label = field.label_data.text if field.label_data else name
                 for (k, v) in mappings.items(): 
                     if(label == k):
                         recognized[v] =  field.value 
 
-    except AssertionError  as error:
-        return (
-            {
+    except AssertionError as error:
+        return {
             "recordId": recordId,
-            "errors": [ { "message": "Error:" + error.args[0] }   ]       
-            })
+            "errors": [{"message": f"Error:{error.args[0]}"}],
+        }
     except Exception as error:
-        return (
-            {
-            "recordId": recordId,
-            "errors": [ { "message": "Error:" + str(error) }   ]       
-            })
+        return {"recordId": recordId, "errors": [{"message": f"Error:{str(error)}"}]}
     return ({
             "recordId": recordId,   
             "data": {

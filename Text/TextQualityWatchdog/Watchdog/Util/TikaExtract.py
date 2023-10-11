@@ -17,7 +17,7 @@ from tika import language
 from azure.storage import blob
 from azure.storage.blob import BlobServiceClient, BlobClient, ContainerClient, __version__
 
-print("Azure Blob Storage v" + __version__ + " - Tika extraction handler\n")
+print(f"Azure Blob Storage v{__version__}" + " - Tika extraction handler\n")
 
 VERBOSE = False
 PARSER_MAX_RETRIES = 3
@@ -164,7 +164,7 @@ for cur_blob in blob_list:
         else:
             # Serialize metadata and dump in pickle file
             metadata_dict = parsedFile['metadata']
-            with open(metadata_file_path + '.pkl', 'wb') as picklefile:
+            with open(f'{metadata_file_path}.pkl', 'wb') as picklefile:
                 pickle.dump(metadata_dict, picklefile)
 
             # Update metrics and save to disk

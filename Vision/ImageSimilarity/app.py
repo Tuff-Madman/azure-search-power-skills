@@ -49,13 +49,12 @@ async def get_api_key(
 
 @app.post('/api/extraction')
 def extract(values: Values, api_key: APIKey = Depends(get_api_key)):
-    body = values.dict()
-    if not body:
-        return 'Expected text within body of request. No text found.', status.HTTP_400_BAD_REQUEST
-    else:
+    if body := values.dict():
         return extractor.go_extract(body, resnet_model=similarity_models.resnet_model,
                                     all_image_features=similarity_models.all_image_features,
                                     topn=int(os.environ['TOPN']))
+    else:
+        return 'Expected text within body of request. No text found.', status.HTTP_400_BAD_REQUEST
 
 
 # Remove these two lines below for non-debug/production mode
