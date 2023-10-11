@@ -53,14 +53,13 @@ async def healthcheck():
 
 @app.post('/api/extraction')
 def extract(values: Values, api_key: APIKey = Depends(get_api_key)):
-    body = values.dict()
-    if not body:
-        return 'Expected text within body of request. No text found.', status.HTTP_400_BAD_REQUEST
-    else:
+    if body := values.dict():
         return extractor.go_extract(body, summarizer_model=summarizer_model.model,
                                     tokenizer=summarizer_model.tokenizer,
                                     max_length=int(os.environ['MAX_LENGTH']),
                                     num_beams=int(os.environ['NUM_BEAMS']))
+    else:
+        return 'Expected text within body of request. No text found.', status.HTTP_400_BAD_REQUEST
 
 
 # Remove these two lines below for non-debug/production mode

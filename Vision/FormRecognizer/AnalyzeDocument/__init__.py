@@ -19,35 +19,36 @@ class DateTimeEncoder(JSONEncoder):
 
 def get_fields(result):
     fields = []
-    for idx, doc in enumerate(result.documents):
+    for doc in result.documents:
         kvp = {}
         for kv_pair in doc.fields.items():
-            if kv_pair[1].value_type == "string":
-                kvp[kv_pair[0]] = kv_pair[1].content
-            elif kv_pair[1].value_type == "list":
+            if kv_pair[1].value_type == "list":
                 line_items = []
                 items = {}
                 for rows in kv_pair[1].value:
                     for row in rows.value.items():
                         items[row[0]] = row[1].content
-                        
+
                     line_items.append(items)
 
                 kvp[kv_pair[0]] = line_items
 
+            elif kv_pair[1].value_type == "string":
+                kvp[kv_pair[0]] = kv_pair[1].content
         fields.append(kvp)
     return fields
 
 def get_tables(result):
     tables = []
-    for table_idx, table in enumerate(result.tables):
-        cells = []
-        for cell in table.cells: 
-            cells.append( {
+    for table in result.tables:
+        cells = [
+            {
                 "row_index": cell.row_index,
                 "column_index": cell.column_index,
                 "content": cell.content,
-            })
+            }
+            for cell in table.cells
+        ]
         tab = {
                 "row_count": table.row_count,
                 "column_count": table.column_count,
@@ -67,21 +68,17 @@ def get_key_value_pairs(result):
 def get_pages(result):
     pages = []
     for page in result.pages:
-        lines = []
-        for line_idx, line in enumerate(page.lines):
-            lines.append(line.content)
+        lines = [line.content for line in page.lines]
         pages.append(lines)
     return pages
 
 def main(req: func.HttpRequest) -> func.HttpResponse:
     logging.info('Invoked FormRecognizer Skill.')
     try:
-        body = json.dumps(req.get_json())
-
-        if body:
+        if body := json.dumps(req.get_json()):
             logging.info(body)
             result = compose_response(body)
-            logging.info("Result to return to custom skill: " + result)
+            logging.info(f"Result to return to custom skill: {result}")
             return func.HttpResponse(result, mimetype="application/json")
         else:
             return func.HttpResponse(
@@ -96,13 +93,12 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
 
 def compose_response(json_data):
     values = json.loads(json_data)['values']
-    
+
     # Prepare the Output before the loop
-    results = {}
-    results["values"] = []
+    results = {"values": []}
     endpoint = os.environ["FORM_RECOGNIZER_ENDPOINT"]
     key = os.environ["FORM_RECOGNIZER_KEY"]
-    
+
     for value in values:
         output_record = analyze_document(endpoint=endpoint, key=key, recordId=value["recordId"], data=value["data"])        
         results["values"].append(output_record)
@@ -113,14 +109,14 @@ def analyze_document(endpoint, key, recordId, data):
     try:
         formUrl = data["formUrl"] + data["formSasToken"]
         model = data["model"]
-        logging.info("Model: " + model)
+        logging.info(f"Model: {model}")
         document_analysis_client = DocumentAnalysisClient(
             endpoint=endpoint, credential=AzureKeyCredential(key)
         )
         poller = document_analysis_client.begin_analyze_document_from_url(
                 model, formUrl)
         result = poller.result()
-        logging.info("Result from Form Recognizer before formatting: " + str(result))
+        logging.info(f"Result from Form Recognizer before formatting: {str(result)}")
         output_record = {}
         output_record_data = {}
         if  model == "prebuilt-layout":
@@ -167,10 +163,12 @@ def analyze_document(endpoint, key, recordId, data):
     except Exception as error:
         output_record = {
             "recordId": recordId,
-            "errors": [ { "message": "Error: " + str(error) }   ] 
+            "errors": [{"message": f"Error: {str(error)}"}],
         }
 
-    logging.info("Output record: " + json.dumps(output_record, ensure_ascii=False, cls=DateTimeEncoder))
+    logging.info(
+        f"Output record: {json.dumps(output_record, ensure_ascii=False, cls=DateTimeEncoder)}"
+    )
     return output_record
 
         

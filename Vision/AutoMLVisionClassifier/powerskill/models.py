@@ -41,12 +41,12 @@ class Models:
                                             service_principal_password=config_data[
                                                 'service_principal_password'])  # clientSecret
 
-        ws = Workspace.get(name=config_data['workspace_name'],
-                           auth=sp,
-                           subscription_id=config_data['subscription_id'],
-                           resource_group=config_data['resource_group'])
-
-        return ws
+        return Workspace.get(
+            name=config_data['workspace_name'],
+            auth=sp,
+            subscription_id=config_data['subscription_id'],
+            resource_group=config_data['resource_group'],
+        )
 
     def get_latest_model(self, experiment_name):
         """

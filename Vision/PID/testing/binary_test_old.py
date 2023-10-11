@@ -45,27 +45,22 @@ class Worker(Thread):
 
 
 def ocr_skill(path,i):
-    request = {}
-    request["values"] = []
+    request = {"values": []}
     start_time = time.time()
-    try:                
-        #print("---PATH----- " + path)
-        fin = open(path,"rb")
+    try:            
+        with open(path,"rb") as fin:
+            base64_bytes = base64.b64encode(fin.read())
 
-        base64_bytes = base64.b64encode(fin.read())
-
-        base64_string = base64_bytes.decode(ENCODING)
-
-        fin.close()
+            base64_string = base64_bytes.decode(ENCODING)
 
         request["values"].append({"recordId": 0,"data":{"file_data": {"type":"file","url":"null","data": base64_string }}})
 
     except IOError:
-        print("Image file %s not found" % path)
+        print(f"Image file {path} not found")
         raise SystemExit
 
-        
-                #data = json.dumps({"values": [{"recordId": "0","data":{"file_data": {"type":"file","url":"null","data": base64_string }}}]})
+            
+                    #data = json.dumps({"values": [{"recordId": "0","data":{"file_data": {"type":"file","url":"null","data": base64_string }}}]})
 
     data = json.dumps(request,ensure_ascii=False)    
 
@@ -77,7 +72,7 @@ def ocr_skill(path,i):
     if resp.status_code < 300:
         jsn = resp.json()
         print(jsn)
-    print("(%s) PATH %s  --- %s seconds ---" % (str(i),path,(time.time() - start_time)))
+    print(f"({str(i)}) PATH {path}  --- {time.time() - start_time} seconds ---")
 
 
 
@@ -113,19 +108,19 @@ for r, d, f in os.walk(location):
         #if item == "CP-000000-MEC-PID-01199-00004-001.05.VDR.05.01.pdf":
         time.sleep(1)
         path = location + "\\" + item
-        print('Document %s' % str(i))
+        print(f'Document {str(i)}')
         th = Thread(target=ocr_skill, args=(path,i))
         th.setDaemon(True)
-        th.start()       
+        th.start()
         thread_array.append(th)
         thread_array = spin_wait(thread_array,5)
-            
+
        # pool.add_task(ocr_skill(path))
         i = i + 1
 
 spin_wait(thread_array,1)
 
-print("Total Run--- %s seconds ---" % (time.time() - start_time))
+print(f"Total Run--- {time.time() - start_time} seconds ---")
 #debug capture
 #print(json.dumps(resp.json()))
 

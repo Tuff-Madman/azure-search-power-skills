@@ -29,49 +29,44 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
     logging.info('Invoked TextQualityWatchdog Skill.')
 
     try:
-        body = json.dumps(req.get_json())
-
-        if body:
-            logging.info(body)
-            values = json.loads(body)['values']
-            results = {}
-            results["values"] = []
-
-            for value in values:
-                text = value['data']['text']
-
-                # Apply puntuation and whitespace normalization, and convert to lowercase
-                text = normalize_text(text)
-
-                # Truncate the text to a maximum of 128 (default) whitespace separated tokens
-                text = truncate_text(text)
-
-                # Compute the input tokens and attention masks for the text sequence
-                input_ids, attention_masks = get_ids_and_masks(tokenizer, text)
-
-                # Call the ONNX model to perform inference on the input
-                flat_prediction = predict(ort_session, input_ids, attention_masks)
-
-                payload = (
-                              {
-                                  "recordId": value['recordId'],   
-                                  "data": {
-                                      "text_quality_warning": int(flat_prediction[0])
-                                  }
-                              }
-                          )
-
-                results["values"].append(payload)
-
-            result = json.dumps(results, ensure_ascii=False)
-
-            return func.HttpResponse(result, mimetype="application/json")
-
-        else:
+        if not (body := json.dumps(req.get_json())):
             return func.HttpResponse(
                 "Invalid body",
                 status_code=400
             )
+
+        logging.info(body)
+        values = json.loads(body)['values']
+        results = {"values": []}
+        for value in values:
+            text = value['data']['text']
+
+            # Apply puntuation and whitespace normalization, and convert to lowercase
+            text = normalize_text(text)
+
+            # Truncate the text to a maximum of 128 (default) whitespace separated tokens
+            text = truncate_text(text)
+
+            # Compute the input tokens and attention masks for the text sequence
+            input_ids, attention_masks = get_ids_and_masks(tokenizer, text)
+
+            # Call the ONNX model to perform inference on the input
+            flat_prediction = predict(ort_session, input_ids, attention_masks)
+
+            payload = (
+                          {
+                              "recordId": value['recordId'],   
+                              "data": {
+                                  "text_quality_warning": int(flat_prediction[0])
+                              }
+                          }
+                      )
+
+            results["values"].append(payload)
+
+        result = json.dumps(results, ensure_ascii=False)
+
+        return func.HttpResponse(result, mimetype="application/json")
 
     except ValueError:
         return func.HttpResponse(

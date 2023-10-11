@@ -29,7 +29,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
     deployment_name = os.environ["DEPLOYMENT_NAME"]
     service_type = os.environ["CLASSIFICATION_TYPE"]
 
-    if service_type != "multi" and service_type != "single":
+    if service_type not in ["multi", "single"]:
         return func.HttpResponse(
             "The function is not configured correctly. The environment variable CLASSIFICATION_TYPE accepts either 'multi' or 'single'",
             status_code=500,

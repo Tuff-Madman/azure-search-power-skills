@@ -26,11 +26,9 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
 
 def compose_response(json_data):
     values = json.loads(json_data)['values']
-    
+
     # Prepare the Output before the loop
-    results = {}
-    results["values"] = []
-    
+    results = {"values": []}
     for value in values:
         output_record = transform_value(value)
         if output_record != None:
@@ -47,13 +45,12 @@ def transform_value(value):
     # Validate the inputs
     try:         
         assert ('data' in value), "'data' field is required."
-        data = value['data']        
-    except AssertionError  as error:
-        return (
-            {
+        data = value['data']
+    except AssertionError as error:
+        return {
             "recordId": recordId,
-            "errors": [ { "message": "Error:" + error.args[0] }   ]       
-            })
+            "errors": [{"message": f"Error:{error.args[0]}"}],
+        }
 
     try:                
         # Here you could do something more interesting with the inputs 
@@ -65,7 +62,7 @@ def transform_value(value):
         output = list(map(lambda x: base64EncodeImage(x['data'],x['pageNumber']), extracted_images))
         output = list(map(lambda x: write_on_blob_storage(x), output))
         output = list(map(lambda x: format_to_acs(x), output))
-            
+
     except ValueError  as error:
         logging.info(f"Unexpected error: {sys.exc_info()[0]}  - {error.args[0]}")
         return (
@@ -118,15 +115,14 @@ def base64EncodeImage(image, pageNumber):
     base64Bytes = base64.b64encode(byte_im)
     base64String = base64Bytes.decode('utf-8')
     height, width, channel = image.shape
-    result = {
-        "base64String": base64String, 
-        "base64Bytes" : byte_im,
-        "image_to_store" : image_to_store, 
-        "height": height, 
-        "width" : width,
-        "pageNumber" : pageNumber
+    return {
+        "base64String": base64String,
+        "base64Bytes": byte_im,
+        "image_to_store": image_to_store,
+        "height": height,
+        "width": width,
+        "pageNumber": pageNumber,
     }
-    return result
 
 def get_extracted_images(image, pageNumber):
     original = image.copy()

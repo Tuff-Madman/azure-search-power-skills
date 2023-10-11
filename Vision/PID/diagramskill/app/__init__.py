@@ -43,30 +43,25 @@ container = os.environ['CONTAINER']
 ## Function Entry Point
 def main(req: func.HttpRequest) -> func.HttpResponse:
     version = "0.0.8"
-    logging.info("Version: %s" % version)
-    
+    logging.info(f"Version: {version}")
+
     start_time_total = time.time()
-    debug = False
     max_circle_ocr = 500
 
-    if 'debug' in req.params:
-        debug = (req.params.get('debug')=="True")
-
+    debug = (req.params.get('debug')=="True") if 'debug' in req.params else False
     if 'circles' in req.params:
         circles = int(req.params.get('debug'))
 
-    logging.info("Debug: %s" % str(debug))
-    logging.info("Circle Param: %s" % str(max_circle_ocr))
+    logging.info(f"Debug: {debug}")
+    logging.info(f"Circle Param: {max_circle_ocr}")
 
     jsn = req.get_json()
 
     # Build Function Response
-    results = {}
-    results["values"] = []
-
+    results = {"values": []}
     values = jsn['values']
 
-    logging.info("Values: " + str(len(values)))
+    logging.info(f"Values: {len(values)}")
 
     for value in values:
         process_normalized_image(value,results,debug,max_circle_ocr)
@@ -74,7 +69,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
 
     jsn = json.dumps(results,ensure_ascii=False)    
 
-    logging.info("All Processes --- %s seconds ---" % (time.time() - start_time_total))
+    logging.info(f"All Processes --- {time.time() - start_time_total} seconds ---")
 
     return func.HttpResponse(jsn, mimetype="application/json")
 

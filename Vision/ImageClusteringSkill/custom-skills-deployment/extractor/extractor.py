@@ -45,7 +45,7 @@ except Exception as NoModel:
     sample_model = True
     # Create DBSCANv2 instance and verify whether the custom class is correct
     model = DBSCANv2(eps=0.3, min_samples=1, metric="cosine")
-    logging.info(f"Using sample model")
+    logging.info("Using sample model")
 
 # Create VGG16 extractor
 extractor = VGG16Extractor()
@@ -71,16 +71,8 @@ def build_output_response(recordId, label, error, cluster_labels):
     if len(cluster_labels) > 0:
         entity_values['label'] = label
     else:
-        if len(label) > 0:
-            entity_values['label'] = int(label[0])
-        else:
-            entity_values['label'] = ''
-
-    if len(error) > 0:
-        errors = [error]
-    else:
-        errors = ""
-
+        entity_values['label'] = int(label[0]) if len(label) > 0 else ''
+    errors = [error] if len(error) > 0 else ""
     values.values.append({"recordId": recordId, \
                           "errors": errors,
                           "data": entity_values,
